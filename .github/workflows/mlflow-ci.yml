@@ -2,12 +2,13 @@ name: MLflow CI - Vegetables
 
 on:
   push:
-    branches: [main, master]
+    branches: [main]
     paths:
       - "MSML_Daffa Al-Fathir Ismail/Workflow-CI/MLProject/**"
       - "MSML_Daffa Al-Fathir Ismail/Workflow-CI/.github/workflows/**"
+      - "MSML_Daffa Al-Fathir Ismail/Eksperimen_MSML_Daffa_Al-Fathir_Ismail/preprocessing/**"
   pull_request:
-    branches: [main, master]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
