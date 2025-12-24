@@ -1,4 +1,0 @@
-{
-  "clf__C": 1.0,
-  "clf__solver": "lbfgs"
-}

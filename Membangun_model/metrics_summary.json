@@ -1,8 +1,0 @@
-{
-  "final_test_accuracy": 0.996,
-  "final_test_precision_weighted": 0.996029630174252,
-  "final_test_recall_weighted": 0.996,
-  "final_test_f1_weighted": 0.9959948398778252,
-  "final_test_f1_macro": 0.9959948398778253,
-  "final_test_balanced_accuracy": 0.9960000000000001
-}
