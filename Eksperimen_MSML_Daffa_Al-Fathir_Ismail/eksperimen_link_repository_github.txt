@@ -1,0 +1,8 @@
+Berikut adalah link repository github saya.
+https://github.com/dapakyuu/Eksperimen_SML_Daffa_Al-Fathir_Ismail
+
+Github Actionsnya :
+https://github.com/dapakyuu/Eksperimen_SML_Daffa_Al-Fathir_Ismail/actions
+
+Run Spesifik :
+https://github.com/dapakyuu/Eksperimen_SML_Daffa_Al-Fathir_Ismail/actions/runs/20480707680
