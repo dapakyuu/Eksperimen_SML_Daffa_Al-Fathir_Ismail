@@ -1,27 +1,23 @@
-name: Run MLflow (Vegetables)
+name: MLflow CI - Vegetables
 
 on:
-  workflow_dispatch:
   push:
-    branches: ["main"]
+    branches: [main]
     paths:
-      - ".workflow/mlflow.yml"
-      - ".github/workflows/mlflow.yml"
+      - "Workflow-CI/MLProject/**"
+      - "Workflow-CI/.github/workflows/**"
+      - "Eksperimen_MSML_Daffa_Al-Fathir_Ismail/preprocessing/**"
   pull_request:
-    branches: ["main"]
-
-permissions:
-  contents: write
+    branches: [main]
+  workflow_dispatch:
 
 jobs:
-  mlflow:
+  train:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          lfs: true
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -30,29 +26,70 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip setuptools wheel
-          pip install mlflow
-          
-      - name: Prepare MLflow tracking dir
-        run: mkdir -p Workflow-CI/MLProject/mlruns
+          python -m pip install --upgrade pip
+          pip install mlflow pandas numpy scikit-learn matplotlib seaborn pillow kagglehub torch torchvision
 
-      - name: Run MLflow Project
+      - name: Setup Kaggle API
+        env:
+          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+          KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
+        run: |
+          mkdir -p ~/.kaggle
+          echo "{\"username\":\"$KAGGLE_USERNAME\",\"key\":\"$KAGGLE_KEY\"}" > ~/.kaggle/kaggle.json
+          chmod 600 ~/.kaggle/kaggle.json
+
+      - name: Download dataset from Kaggle
+        run: |
+          python - << 'PY'
+          import kagglehub
+          import os
+          import shutil
+
+          print('Downloading Vegetable Image Dataset from Kaggle...')
+          path = kagglehub.dataset_download('misrakahmed/vegetable-image-dataset')
+          print(f'Downloaded to: {path}')
+
+          target = 'Workflow-CI/MLProject/Vegetables_raw'
+          if os.path.exists(target):
+              shutil.rmtree(target)
+          os.makedirs(os.path.dirname(target), exist_ok=True)
+
+          nested = os.path.join(path, 'Vegetable Images')
+          if os.path.exists(nested):
+              shutil.move(nested, target)
+          else:
+              shutil.move(path, target)
+
+          print(f'Dataset ready at: {target}')
+          PY
+
+      - name: Run MLflow Project and capture run ID
         run: |
           cd "Workflow-CI/MLProject"
-          export MLFLOW_TRACKING_URI="sqlite:///mlflow.db"
-          mlflow run . \
+          export MLFLOW_TRACKING_URI="file:$(pwd)/mlruns"
+          python -m mlflow run . \
             --env-manager=local \
+            --experiment-name "Vegetables-CI" \
             -P max_train=200 \
             -P max_test=100 \
             -P batch_size=64 \
-            -P device=cpu | tee mlflow_output.txt
-      
+            -P device=cpu > mlflow_output.txt 2>&1
+          cat mlflow_output.txt
           RUN_ID=$(grep "MLFLOW_RUN_ID=" mlflow_output.txt | tail -1 | cut -d'=' -f2)
-          echo "RUN_ID=$RUN_ID"
           echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
           echo "MLFLOW_TRACKING_URI=$MLFLOW_TRACKING_URI" >> $GITHUB_ENV
+          echo "Captured run ID: $RUN_ID"
 
-      - name: Build Docker image from MLflow model
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build Docker image with mlflow build-docker
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
         run: |
@@ -64,12 +101,15 @@ jobs:
       - name: Push Docker image
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-        run: docker push "${DOCKERHUB_USERNAME}/vegetables-mlflow:latest"
+        run: |
+          docker push "${DOCKERHUB_USERNAME}/vegetables-mlflow:latest"
 
-      - name: Upload MLflow artifacts
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: mlflow-artifacts
-          path: Workflow-CI/MLProject/mlruns/
+          path: |
+            Workflow-CI/MLProject/mlruns/
+            Workflow-CI/MLProject/*.png
+            Workflow-CI/MLProject/*.txt
           retention-days: 30
-          if-no-files-found: error
