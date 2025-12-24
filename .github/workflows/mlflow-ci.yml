@@ -73,7 +73,7 @@ jobs:
             --dataset_dir "Vegetables_raw" \
             --output_dir "Vegetables_preprocessing"
 
-      - name: Run MLflow Project
+      - name: Run MLflow Project and capture run ID
         run: |
           cd "Workflow-CI/MLProject"
           python -m mlflow run . \
@@ -82,28 +82,11 @@ jobs:
             -P max_train=200 \
             -P max_test=100 \
             -P batch_size=64 \
-            -P device=cpu
-
-      - name: Get latest MLflow run id
-        run: |
-          cd "Workflow-CI/MLProject"
-          RUN_ID=$(python - << 'PY'
-          import mlflow
-          from mlflow.tracking import MlflowClient
-
-          mlflow.set_tracking_uri('file:./mlruns')
-          client = MlflowClient()
-          exp = client.get_experiment_by_name('Vegetables-CI')
-          if exp is None:
-              raise SystemExit('Experiment Vegetables-CI not found')
-          runs = client.search_runs([exp.experiment_id], order_by=['start_time DESC'], max_results=1)
-          if not runs:
-              raise SystemExit('No runs found')
-          print(runs[0].info.run_id)
-          PY
-          )
+            -P device=cpu > mlflow_output.txt 2>&1
+          cat mlflow_output.txt
+          RUN_ID=$(grep "MLFLOW_RUN_ID=" mlflow_output.txt | tail -1 | cut -d'=' -f2)
           echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
-          echo "Latest run: $RUN_ID"
+          echo "Captured run ID: $RUN_ID"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3

@@ -297,14 +297,19 @@ def main() -> None:
     # We must attach to that run and MUST NOT call set_experiment(), otherwise MLflow
     # raises an experiment-id mismatch error.
     if active is None and env_run_id:
-        with mlflow.start_run(run_id=env_run_id):
+        with mlflow.start_run(run_id=env_run_id) as run:
             train_and_log()
+            print(f"\n🔑 MLFLOW_RUN_ID={run.info.run_id}")
     elif active is None:
         mlflow.set_experiment(args.experiment_name)
-        with mlflow.start_run():
+        with mlflow.start_run() as run:
             train_and_log()
+            print(f"\n🔑 MLFLOW_RUN_ID={run.info.run_id}")
     else:
         train_and_log()
+        run = mlflow.active_run()
+        if run:
+            print(f"\n🔑 MLFLOW_RUN_ID={run.info.run_id}")
 
     print("\n✅ Training selesai.")
 

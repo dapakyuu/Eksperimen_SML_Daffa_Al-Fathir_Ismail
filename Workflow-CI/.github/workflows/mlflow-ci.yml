@@ -1,13 +1,17 @@
+# Mirror of GitHub Actions workflow (for rubric folder structure)
+# Source of truth: ../.github/workflows/mlflow-ci.yml
+
 name: MLflow CI - Vegetables
 
 on:
   push:
-    branches: [main, master]
+    branches: [main]
     paths:
-      - "MSML_Daffa Al-Fathir Ismail/Workflow-CI/MLProject/**"
-      - "MSML_Daffa Al-Fathir Ismail/Workflow-CI/.github/workflows/**"
+      - "Workflow-CI/MLProject/**"
+      - "Workflow-CI/.github/workflows/**"
+      - "Eksperimen_MSML_Daffa_Al-Fathir_Ismail/preprocessing/**"
   pull_request:
-    branches: [main, master]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -48,12 +52,11 @@ jobs:
           path = kagglehub.dataset_download('misrakahmed/vegetable-image-dataset')
           print(f'Downloaded to: {path}')
 
-          target = 'MSML_Daffa Al-Fathir Ismail/Workflow-CI/MLProject/Vegetables_raw'
+          target = 'Workflow-CI/MLProject/Vegetables_raw'
           if os.path.exists(target):
               shutil.rmtree(target)
           os.makedirs(os.path.dirname(target), exist_ok=True)
 
-          # Handle nested folder name
           nested = os.path.join(path, 'Vegetable Images')
           if os.path.exists(nested):
               shutil.move(nested, target)
@@ -65,42 +68,25 @@ jobs:
 
       - name: Run preprocessing (generate CI-ready CSVs)
         run: |
-          cd "MSML_Daffa Al-Fathir Ismail/Workflow-CI/MLProject"
+          cd "Workflow-CI/MLProject"
           python automate_Daffa.py \
             --dataset_dir "Vegetables_raw" \
             --output_dir "Vegetables_preprocessing"
 
-      - name: Run MLflow Project
+      - name: Run MLflow Project and capture run ID
         run: |
-          cd "MSML_Daffa Al-Fathir Ismail/Workflow-CI/MLProject"
+          cd "Workflow-CI/MLProject"
           python -m mlflow run . \
             --env-manager=local \
             --experiment-name "Vegetables-CI" \
             -P max_train=200 \
             -P max_test=100 \
             -P batch_size=64 \
-            -P device=cpu
-
-      - name: Get latest MLflow run id
-        run: |
-          cd "MSML_Daffa Al-Fathir Ismail/Workflow-CI/MLProject"
-          RUN_ID=$(python - << 'PY'
-          import mlflow
-          from mlflow.tracking import MlflowClient
-
-          mlflow.set_tracking_uri('file:./mlruns')
-          client = MlflowClient()
-          exp = client.get_experiment_by_name('Vegetables-CI')
-          if exp is None:
-              raise SystemExit('Experiment Vegetables-CI not found')
-          runs = client.search_runs([exp.experiment_id], order_by=['start_time DESC'], max_results=1)
-          if not runs:
-              raise SystemExit('No runs found')
-          print(runs[0].info.run_id)
-          PY
-          )
+            -P device=cpu > mlflow_output.txt 2>&1
+          cat mlflow_output.txt
+          RUN_ID=$(grep "MLFLOW_RUN_ID=" mlflow_output.txt | tail -1 | cut -d'=' -f2)
           echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
-          echo "Latest run: $RUN_ID"
+          echo "Captured run ID: $RUN_ID"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -115,7 +101,7 @@ jobs:
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
         run: |
-          cd "MSML_Daffa Al-Fathir Ismail/Workflow-CI/MLProject"
+          cd "Workflow-CI/MLProject"
           export MLFLOW_TRACKING_URI="file:./mlruns"
           python -m mlflow models build-docker \
             --model-uri "runs:/${RUN_ID}/model" \
@@ -132,7 +118,7 @@ jobs:
         with:
           name: mlflow-artifacts
           path: |
-            MSML_Daffa Al-Fathir Ismail/Workflow-CI/MLProject/mlruns/
-            MSML_Daffa Al-Fathir Ismail/Workflow-CI/MLProject/*.png
-            MSML_Daffa Al-Fathir Ismail/Workflow-CI/MLProject/*.txt
+            Workflow-CI/MLProject/mlruns/
+            Workflow-CI/MLProject/*.png
+            Workflow-CI/MLProject/*.txt
           retention-days: 30
