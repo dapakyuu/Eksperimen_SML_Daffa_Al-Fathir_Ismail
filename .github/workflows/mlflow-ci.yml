@@ -33,17 +33,16 @@ jobs:
           python -m pip install --upgrade pip setuptools wheel
           pip install mlflow
 
-      - name: Run MLflow Project and capture run ID
+      - name: Run MLflow Project
         run: |
           cd "Workflow-CI/MLProject"
           export MLFLOW_TRACKING_URI="file:$(pwd)/mlruns"
-          python -m mlflow run . \
+          mlflow run . \
             --env-manager=local \
-            --experiment-name "Vegetables-CI" \
             -P max_train=200 \
             -P max_test=100 \
             -P batch_size=64 \
-            -P device=cpu > mlflow_output.txt 2>&1
+            -P device=cpu
 
           cat mlflow_output.txt
           RUN_ID=$(grep "MLFLOW_RUN_ID=" mlflow_output.txt | tail -1 | cut -d'=' -f2)
