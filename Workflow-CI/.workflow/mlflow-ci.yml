@@ -67,9 +67,10 @@ jobs:
 
       - name: Run preprocessing (generate CI-ready CSVs)
         run: |
-          python "MSML_Daffa Al-Fathir Ismail/Eksperimen_MSML_Daffa_Al-Fathir_Ismail/preprocessing/automate_Daffa.py" \
-            --dataset_dir "MSML_Daffa Al-Fathir Ismail/Workflow-CI/MLProject/Vegetables_raw" \
-            --output_dir "MSML_Daffa Al-Fathir Ismail/Workflow-CI/MLProject/Vegetables_preprocessing"
+          cd "MSML_Daffa Al-Fathir Ismail/Workflow-CI/MLProject"
+          python automate_Daffa.py \
+            --dataset_dir "Vegetables_raw" \
+            --output_dir "Vegetables_preprocessing"
 
       - name: Run MLflow Project
         run: |
