@@ -6,8 +6,9 @@ Script ini dibuat agar mirip dengan Kriteria 2 Basic modelling:
 - Logging: MLflow autolog + beberapa metric + artifacts
 
 Catatan penting untuk CI:
-- Workflow akan mengunduh dataset (Vegetables_raw) dan menjalankan preprocessing,
-  sehingga CSV berisi path yang valid di runner.
+- Workflow mengunduh dataset (Vegetables_raw). File CSV yang sudah ada dapat
+    berisi path absolut Windows; script ini akan memetakan ulang path tersebut
+    ke lokasi Vegetables_raw di runner.
 """
 
 from __future__ import annotations
@@ -115,8 +116,11 @@ def resolve_image_path(image_path: str, raw_dir: str) -> str:
     raw_dir = os.path.abspath(raw_dir)
     marker = "Vegetables_raw"
     if marker in image_path:
-        suffix = image_path.split(marker, 1)[1].lstrip("\\/")
-        candidate = os.path.join(raw_dir, suffix)
+        # CSV bisa berisi path Windows (mis. D:\...\Vegetables_raw\test\Bean\0001.jpg)
+        # Saat dijalankan di Linux runner, normalize separator dan join sebagai relative path.
+        suffix = image_path.split(marker, 1)[1]
+        suffix = suffix.replace("\\", "/").lstrip("/")
+        candidate = os.path.join(raw_dir, *[p for p in suffix.split("/") if p])
         if os.path.exists(candidate):
             return candidate
 
