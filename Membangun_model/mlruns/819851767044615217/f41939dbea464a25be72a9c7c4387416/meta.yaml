@@ -1,0 +1,14 @@
+artifact_uri: file:D:/Coding/SMSML_Naufal Ahmad Fauzan/MSML_Daffa Al-Fathir Ismail/Membangun_model/mlruns/819851767044615217/f41939dbea464a25be72a9c7c4387416/artifacts
+end_time: 1766562721679
+entry_point_name: ''
+experiment_id: '819851767044615217'
+lifecycle_stage: active
+run_id: f41939dbea464a25be72a9c7c4387416
+run_name: skilled_tuning_cv2
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1766562683314
+status: 3
+tags: []
+user_id: Daffa

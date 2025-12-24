@@ -1,0 +1,15 @@
+python: "3.11.0"
+build_dependencies:
+  - pip
+  - setuptools
+  - wheel
+dependencies:
+  - pandas==2.3.3
+  - numpy==1.26.4
+  - scikit-learn==1.8.0
+  - mlflow==3.7.0
+  - matplotlib==3.10.8
+  - seaborn==0.13.2
+  - pillow==11.0.0
+  - torch
+  - torchvision

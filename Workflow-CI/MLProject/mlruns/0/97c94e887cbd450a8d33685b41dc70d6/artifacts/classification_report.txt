@@ -1,0 +1,16 @@
+              precision    recall  f1-score   support
+
+        Bean       0.00      0.00      0.00         1
+    Broccoli       1.00      1.00      1.00         1
+    Capsicum       0.50      1.00      0.67         1
+      Carrot       0.00      0.00      0.00         1
+ Cauliflower       1.00      1.00      1.00         1
+      Papaya       0.50      1.00      0.67         1
+      Potato       0.50      1.00      0.67         1
+     Pumpkin       0.00      0.00      0.00         1
+      Radish       0.00      0.00      0.00         1
+      Tomato       0.00      0.00      0.00         1
+
+    accuracy                           0.50        10
+   macro avg       0.35      0.50      0.40        10
+weighted avg       0.35      0.50      0.40        10

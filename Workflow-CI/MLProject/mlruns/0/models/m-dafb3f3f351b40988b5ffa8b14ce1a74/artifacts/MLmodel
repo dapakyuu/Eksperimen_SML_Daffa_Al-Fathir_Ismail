@@ -1,0 +1,22 @@
+artifact_path: file:D:/Coding/SMSML_Naufal Ahmad Fauzan/MSML_Daffa Al-Fathir Ismail/Workflow-CI/MLProject/mlruns/0/models/m-dafb3f3f351b40988b5ffa8b14ce1a74/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.pkl
+    predict_fn: predict
+    python_version: 3.13.3
+  sklearn:
+    code: null
+    pickled_model: model.pkl
+    serialization_format: cloudpickle
+    sklearn_version: 1.7.2
+mlflow_version: 3.8.0
+model_id: m-dafb3f3f351b40988b5ffa8b14ce1a74
+model_size_bytes: 13085
+model_uuid: m-dafb3f3f351b40988b5ffa8b14ce1a74
+prompts: null
+run_id: 5ddb7972df234c0da09be3e0c899437b
+utc_time_created: '2025-12-24 10:08:32.471553'

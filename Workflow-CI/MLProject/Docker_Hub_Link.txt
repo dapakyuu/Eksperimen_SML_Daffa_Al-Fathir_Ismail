@@ -1,0 +1,6 @@
+Docker Hub link (update username sesuai akun Anda):
+
+https://hub.docker.com/r/<DOCKERHUB_USERNAME>/vegetables-mlflow
+
+Image tag yang dipush oleh CI:
+<DOCKERHUB_USERNAME>/vegetables-mlflow:latest

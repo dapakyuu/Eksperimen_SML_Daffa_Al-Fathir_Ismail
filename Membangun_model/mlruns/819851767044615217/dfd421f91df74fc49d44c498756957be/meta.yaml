@@ -1,0 +1,14 @@
+artifact_uri: file:D:/Coding/SMSML_Naufal Ahmad Fauzan/MSML_Daffa Al-Fathir Ismail/Membangun_model/mlruns/819851767044615217/dfd421f91df74fc49d44c498756957be/artifacts
+end_time: 1766564955873
+entry_point_name: ''
+experiment_id: '819851767044615217'
+lifecycle_stage: active
+run_id: dfd421f91df74fc49d44c498756957be
+run_name: cfg1_lr0.001_wd0.0
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1766564819450
+status: 4
+tags: []
+user_id: Daffa

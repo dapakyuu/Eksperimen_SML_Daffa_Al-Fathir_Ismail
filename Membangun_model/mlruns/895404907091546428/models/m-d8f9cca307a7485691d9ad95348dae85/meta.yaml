@@ -1,0 +1,10 @@
+artifact_location: file:D:/Coding/SMSML_Naufal Ahmad Fauzan/MSML_Daffa Al-Fathir Ismail/Membangun_model/mlruns/895404907091546428/models/m-d8f9cca307a7485691d9ad95348dae85/artifacts
+creation_timestamp: 1766562094854
+experiment_id: '895404907091546428'
+last_updated_timestamp: 1766562099239
+model_id: m-d8f9cca307a7485691d9ad95348dae85
+model_type: null
+name: model
+source_run_id: e68f420711424e329d577492291049be
+status: 2
+status_message: null

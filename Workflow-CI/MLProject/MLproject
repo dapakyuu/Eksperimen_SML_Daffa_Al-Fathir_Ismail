@@ -1,0 +1,12 @@
+name: Vegetables_MLflow_Project
+
+python_env: python_env.yaml
+
+entry_points:
+  main:
+    parameters:
+      max_train: { type: int, default: 200 }
+      max_test: { type: int, default: 100 }
+      batch_size: { type: int, default: 64 }
+      device: { type: str, default: cpu }
+    command: "python modelling.py --max_train {max_train} --max_test {max_test} --batch_size {batch_size} --device {device}"
