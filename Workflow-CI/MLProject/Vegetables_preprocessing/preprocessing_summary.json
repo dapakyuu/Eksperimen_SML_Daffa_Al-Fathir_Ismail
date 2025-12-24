@@ -1,5 +1,5 @@
 {
-  "dataset_root": "D:\\Coding\\SMSML_Naufal Ahmad Fauzan\\MSML_Daffa Al-Fathir Ismail\\Eksperimen_MSML_Daffa_Al-Fathir_Ismail\\Vegetables_raw",
+  "dataset_root": "D:\\Coding\\Project Terakhir\\MSML_Daffa Al-Fathir Ismail\\Eksperimen_MSML_Daffa_Al-Fathir_Ismail\\Vegetables_raw",
   "num_categories": 10,
   "categories": [
     "Bean",
@@ -61,9 +61,9 @@
     }
   },
   "outputs": {
-    "train_csv": "D:\\Coding\\SMSML_Naufal Ahmad Fauzan\\MSML_Daffa Al-Fathir Ismail\\Eksperimen_MSML_Daffa_Al-Fathir_Ismail\\preprocessing\\Vegetables_preprocessing\\train_ready.csv",
-    "test_csv": "D:\\Coding\\SMSML_Naufal Ahmad Fauzan\\MSML_Daffa Al-Fathir Ismail\\Eksperimen_MSML_Daffa_Al-Fathir_Ismail\\preprocessing\\Vegetables_preprocessing\\test_ready.csv",
-    "val_csv": "D:\\Coding\\SMSML_Naufal Ahmad Fauzan\\MSML_Daffa Al-Fathir Ismail\\Eksperimen_MSML_Daffa_Al-Fathir_Ismail\\preprocessing\\Vegetables_preprocessing\\val_ready.csv",
-    "label_mapping": "D:\\Coding\\SMSML_Naufal Ahmad Fauzan\\MSML_Daffa Al-Fathir Ismail\\Eksperimen_MSML_Daffa_Al-Fathir_Ismail\\preprocessing\\Vegetables_preprocessing\\label_mapping.json"
+    "train_csv": "D:\\Coding\\Project Terakhir\\MSML_Daffa Al-Fathir Ismail\\Eksperimen_MSML_Daffa_Al-Fathir_Ismail\\preprocessing\\Vegetables_preprocessing\\train_ready.csv",
+    "test_csv": "D:\\Coding\\Project Terakhir\\MSML_Daffa Al-Fathir Ismail\\Eksperimen_MSML_Daffa_Al-Fathir_Ismail\\preprocessing\\Vegetables_preprocessing\\test_ready.csv",
+    "val_csv": "D:\\Coding\\Project Terakhir\\MSML_Daffa Al-Fathir Ismail\\Eksperimen_MSML_Daffa_Al-Fathir_Ismail\\preprocessing\\Vegetables_preprocessing\\val_ready.csv",
+    "label_mapping": "D:\\Coding\\Project Terakhir\\MSML_Daffa Al-Fathir Ismail\\Eksperimen_MSML_Daffa_Al-Fathir_Ismail\\preprocessing\\Vegetables_preprocessing\\label_mapping.json"
   }
 }
