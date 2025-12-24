@@ -75,12 +75,6 @@ def parse_args() -> argparse.Namespace:
         help="Folder berisi train_ready.csv/test_ready.csv",
     )
     parser.add_argument(
-        "--raw_dir",
-        type=str,
-        default=str(resolve_here("Vegetables_raw")),
-        help="Folder Vegetables_raw untuk fallback path",
-    )
-    parser.add_argument(
         "--experiment_name",
         type=str,
         default="Vegetables - CI (MLflow Project)",
@@ -107,23 +101,7 @@ def parse_args() -> argparse.Namespace:
     )
     return parser.parse_args()
 
-
-def resolve_image_path(image_path: str, raw_dir: str) -> str:
-    if os.path.exists(image_path):
-        return image_path
-
-    raw_dir = os.path.abspath(raw_dir)
-    marker = "Vegetables_raw"
-    if marker in image_path:
-        suffix = image_path.split(marker, 1)[1].lstrip("\\/")
-        candidate = os.path.join(raw_dir, suffix)
-        if os.path.exists(candidate):
-            return candidate
-
-    return image_path
-
-
-def load_split_csv(data_dir: str, filename: str, raw_dir: str, limit: int) -> Tuple[np.ndarray, np.ndarray]:
+def load_split_csv(data_dir: str, filename: str, limit: int) -> Tuple[np.ndarray, np.ndarray]:
     csv_path = Path(data_dir) / filename
     if not csv_path.exists():
         raise FileNotFoundError(f"CSV tidak ditemukan: {csv_path}")
@@ -144,25 +122,14 @@ def load_split_csv(data_dir: str, filename: str, raw_dir: str, limit: int) -> Tu
                 parts.append(g.sample(n=min(len(g), per_class), random_state=42))
             sampled = pd.concat(parts, axis=0)
 
-            # If per-class sampling exceeds the requested limit (e.g., limit < n_classes),
-            # downsample strictly to `limit`.
             if len(sampled) > limit:
                 sampled = sampled.sample(n=limit, random_state=42)
 
-            remaining = limit - len(sampled)
-            if remaining > 0:
-                leftover = df.drop(sampled.index, errors="ignore")
-                extra = leftover.sample(n=min(remaining, len(leftover)), random_state=42)
-                df = pd.concat([sampled, extra], ignore_index=False)
-            else:
-                df = sampled
-            df = df.sample(frac=1.0, random_state=42).reset_index(drop=True)
+            df = sampled.sample(frac=1.0, random_state=42).reset_index(drop=True)
 
-    df["image_path"] = df["image_path"].astype(str).map(lambda p: resolve_image_path(p, raw_dir))
-    x_paths = df["image_path"].to_numpy()
+    x_paths = df["image_path"].astype(str).to_numpy()
     y = df["label_encoded"].to_numpy(dtype=np.int64)
     return x_paths, y
-
 
 @torch.inference_mode()
 def extract_features(
@@ -210,8 +177,8 @@ def main() -> None:
         mlflow.log_param("device", args.device)
 
         print("\n[1] Loading preprocessed CSVs...")
-        x_train_paths, y_train = load_split_csv(args.data_dir, "train_ready.csv", args.raw_dir, args.max_train)
-        x_test_paths, y_test = load_split_csv(args.data_dir, "test_ready.csv", args.raw_dir, args.max_test)
+        x_train_paths, y_train = load_split_csv(args.data_dir, "train_ready.csv", args.max_train)
+        x_test_paths, y_test = load_split_csv(args.data_dir, "test_ready.csv", args.max_test)
         class_names = load_label_mapping(args.data_dir)
 
         print(f"   Train samples: {len(x_train_paths)}")
