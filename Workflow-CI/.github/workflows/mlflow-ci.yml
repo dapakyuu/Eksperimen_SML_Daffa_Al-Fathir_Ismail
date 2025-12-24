@@ -76,6 +76,7 @@ jobs:
       - name: Run MLflow Project and capture run ID
         run: |
           cd "Workflow-CI/MLProject"
+          export MLFLOW_TRACKING_URI="file:$(pwd)/mlruns"
           python -m mlflow run . \
             --env-manager=local \
             --experiment-name "Vegetables-CI" \
@@ -86,6 +87,7 @@ jobs:
           cat mlflow_output.txt
           RUN_ID=$(grep "MLFLOW_RUN_ID=" mlflow_output.txt | tail -1 | cut -d'=' -f2)
           echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
+          echo "MLFLOW_TRACKING_URI=$MLFLOW_TRACKING_URI" >> $GITHUB_ENV
           echo "Captured run ID: $RUN_ID"
 
       - name: Set up Docker Buildx
@@ -102,7 +104,6 @@ jobs:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
         run: |
           cd "Workflow-CI/MLProject"
-          export MLFLOW_TRACKING_URI="file:./mlruns"
           python -m mlflow models build-docker \
             --model-uri "runs:/${RUN_ID}/model" \
             --name "${DOCKERHUB_USERNAME}/vegetables-mlflow:latest"
