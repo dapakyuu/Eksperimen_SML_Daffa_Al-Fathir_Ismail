@@ -1,14 +1,16 @@
+# Mirror of GitHub Actions workflow (for rubric folder structure)
+# Source of truth: ../.github/workflows/mlflow-ci.yml
+
 name: MLflow CI - Vegetables
 
 on:
   push:
-    branches: [main]
+    branches: [main, master]
     paths:
       - "MSML_Daffa Al-Fathir Ismail/Workflow-CI/MLProject/**"
       - "MSML_Daffa Al-Fathir Ismail/Workflow-CI/.github/workflows/**"
-      - "MSML_Daffa Al-Fathir Ismail/Eksperimen_MSML_Daffa_Al-Fathir_Ismail/preprocessing/**"
   pull_request:
-    branches: [main]
+    branches: [main, master]
   workflow_dispatch:
 
 jobs:
@@ -54,7 +56,6 @@ jobs:
               shutil.rmtree(target)
           os.makedirs(os.path.dirname(target), exist_ok=True)
 
-          # Handle nested folder name
           nested = os.path.join(path, 'Vegetable Images')
           if os.path.exists(nested):
               shutil.move(nested, target)
@@ -66,9 +67,10 @@ jobs:
 
       - name: Run preprocessing (generate CI-ready CSVs)
         run: |
-          python "MSML_Daffa Al-Fathir Ismail/Eksperimen_MSML_Daffa_Al-Fathir_Ismail/preprocessing/automate_Daffa.py" \
-            --dataset_dir "MSML_Daffa Al-Fathir Ismail/Workflow-CI/MLProject/Vegetables_raw" \
-            --output_dir "MSML_Daffa Al-Fathir Ismail/Workflow-CI/MLProject/Vegetables_preprocessing"
+          cd "MSML_Daffa Al-Fathir Ismail/Workflow-CI/MLProject"
+          python automate_Daffa.py \
+            --dataset_dir "Vegetables_raw" \
+            --output_dir "Vegetables_preprocessing"
 
       - name: Run MLflow Project
         run: |
