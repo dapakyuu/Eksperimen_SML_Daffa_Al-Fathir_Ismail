@@ -1,6 +1,0 @@
-prometheus-client
-psutil
-requests
-numpy
-scikit-learn
-pillow
