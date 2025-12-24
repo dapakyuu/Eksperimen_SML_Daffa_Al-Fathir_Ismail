@@ -1,0 +1,105 @@
+name: Preprocess Dataset (Vegetables)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main", "master"]
+    paths:
+      - "preprocessing/**"
+      - ".workflow/preprocess.yml"
+      - ".github/workflows/preprocess.yml"
+  pull_request:
+    branches: ["main", "master"]
+
+permissions:
+  contents: write # Allow committing results if needed
+
+jobs:
+  preprocess:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Eksperimen_MSML_Daffa_Al-Fathir_Ismail
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true # Enable Git LFS if used
+
+      - name: Pull LFS objects (if any)
+        run: git lfs pull || echo "No LFS objects"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Display Python version
+        run: python -c "import sys; print(sys.version)"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          pip install pandas scikit-learn kagglehub
+
+      - name: Setup Kaggle API
+        env:
+          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+          KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
+        run: |
+          mkdir -p ~/.kaggle
+          echo "{\"username\":\"$KAGGLE_USERNAME\",\"key\":\"$KAGGLE_KEY\"}" > ~/.kaggle/kaggle.json
+          chmod 600 ~/.kaggle/kaggle.json
+
+      - name: Download dataset from Kaggle
+        run: |
+          python -c "
+          import kagglehub
+          import shutil
+          import os
+
+          # Download dataset
+          print('Downloading Vegetable Image Dataset from Kaggle...')
+          path = kagglehub.dataset_download('misrakahmed/vegetable-image-dataset')
+          print(f'Downloaded to: {path}')
+
+          # Move to expected location
+          target = 'Vegetables_raw'
+          if os.path.exists(target):
+              shutil.rmtree(target)
+
+          # Check if nested structure exists
+          if os.path.exists(os.path.join(path, 'Vegetable Images')):
+              shutil.move(os.path.join(path, 'Vegetable Images'), target)
+          else:
+              shutil.move(path, target)
+
+          print(f'Dataset ready at: {target}')
+          "
+
+      - name: Run preprocessing
+        run: |
+          python preprocessing/automate_Daffa.py \
+            --dataset_dir "Vegetables_raw" \
+            --output_dir "preprocessing/Vegetables_preprocessing"
+
+      - name: Verify preprocessing output
+        run: |
+          echo "Checking if preprocessing completed successfully..."
+          if [ -d "preprocessing/Vegetables_preprocessing" ]; then
+            echo "✅ Output directory exists"
+            ls -lh preprocessing/Vegetables_preprocessing/
+          else
+            echo "❌ Output directory not found"
+            exit 1
+          fi
+
+      - name: Upload preprocessed artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vegetables-preprocessing
+          path: Eksperimen_MSML_Daffa_Al-Fathir_Ismail/preprocessing/Vegetables_preprocessing
+          retention-days: 30
+          if-no-files-found: error
