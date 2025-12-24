@@ -19,6 +19,7 @@ Implementasi: CNN transfer learning
 from __future__ import annotations
 
 import argparse
+import copy
 import json
 import os
 import time
@@ -301,6 +302,89 @@ def log_pytorch_model_compat(model: torch.nn.Module, model_name: str = "model") 
         mlflow.pytorch.log_model(model, model_name)
 
 
+def export_best_model_artifacts(
+    *,
+    state_dict: dict,
+    n_classes: int,
+    class_names: list[str],
+    weights,
+    best_cfg: TuneConfig,
+    out_dir: str,
+) -> None:
+    """Export model dalam beberapa format untuk inference tanpa retrain.
+
+    Artifacts yang dihasilkan:
+    - best_model_state_dict.pt (torch state_dict)
+    - best_model_full.pt (torch.save(model))
+    - best_model_torchscript.pt (TorchScript)
+    - best_model_info.json (metadata)
+    - MLflow model: best_model/
+    """
+
+    os.makedirs(out_dir, exist_ok=True)
+
+    model = models.resnet18(weights=weights)
+    num_feats = model.fc.in_features
+    model.fc = torch.nn.Linear(num_feats, n_classes)
+    model.load_state_dict(state_dict)
+    model.eval()
+    model.cpu()
+
+    state_path = os.path.join(out_dir, "best_model_state_dict.pt")
+    torch.save(state_dict, state_path)
+    mlflow.log_artifact(state_path)
+
+    full_path = os.path.join(out_dir, "best_model_full.pt")
+    torch.save(model, full_path)
+    mlflow.log_artifact(full_path)
+
+    ts_path = os.path.join(out_dir, "best_model_torchscript.pt")
+    example = torch.zeros(1, 3, 224, 224)
+    try:
+        scripted = torch.jit.trace(model, example)
+        scripted.save(ts_path)
+        mlflow.log_artifact(ts_path)
+    except Exception as e:
+        # TorchScript bisa gagal pada sebagian environment; model MLflow tetap ada.
+        mlflow.log_param("torchscript_export_error", str(e)[:250])
+
+    info_path = os.path.join(out_dir, "best_model_info.json")
+    with open(info_path, "w", encoding="utf-8") as f:
+        json.dump(
+            {
+                "backbone": "resnet18_imagenet",
+                "n_classes": int(n_classes),
+                "class_names": class_names,
+                "best_lr": float(best_cfg.lr),
+                "best_weight_decay": float(best_cfg.weight_decay),
+                "input_shape": [1, 3, 224, 224],
+                "note": "Model expects ImageNet-style preprocessed images (224x224 RGB).",
+            },
+            f,
+            indent=2,
+        )
+    mlflow.log_artifact(info_path)
+
+    # MLflow-native model (paling praktis untuk inference via `mlflow models serve`)
+    log_pytorch_model_compat(model, "best_model")
+
+    # Optional export: ONNX (tanpa dependency baru; kalau gagal, skip)
+    onnx_path = os.path.join(out_dir, "best_model.onnx")
+    try:
+        torch.onnx.export(
+            model,
+            example,
+            onnx_path,
+            input_names=["input"],
+            output_names=["logits"],
+            opset_version=17,
+            dynamic_axes={"input": {0: "batch"}, "logits": {0: "batch"}},
+        )
+        mlflow.log_artifact(onnx_path)
+    except Exception:
+        pass
+
+
 def save_confusion_matrix(cm: np.ndarray, out_path: str, class_names: list[str]) -> None:
     plt.figure(figsize=(12, 10))
     sns.heatmap(
@@ -480,6 +564,7 @@ def main() -> None:
         best_acc = -1.0
         best_cfg: TuneConfig | None = None
         best_run_id: str | None = None
+        best_state_dict: dict | None = None
 
         print("\n[3] Hyperparameter tuning loop...")
         for idx, cfg in enumerate(tune_grid, start=1):
@@ -614,6 +699,8 @@ def main() -> None:
                     best_acc = float(acc)
                     best_cfg = cfg
                     best_run_id = mlflow.active_run().info.run_id
+                    # Simpan state_dict terbaik agar bisa diexport di parent run.
+                    best_state_dict = copy.deepcopy({k: v.detach().cpu() for k, v in model.state_dict().items()})
 
             # NOTE: After nested run closes, we're back in the parent run.
             # Some UIs (incl. DagsHub) show "No Artifacts" if you're looking at the parent run.
@@ -634,6 +721,17 @@ def main() -> None:
             mlflow.log_param("best_weight_decay", best_cfg.weight_decay)
             if best_run_id:
                 mlflow.log_param("best_run_id", best_run_id)
+
+        # Export model terbaik di parent run (memudahkan inference + screenshot artifacts)
+        if best_cfg is not None and best_state_dict is not None:
+            export_best_model_artifacts(
+                state_dict=best_state_dict,
+                n_classes=n_classes,
+                class_names=class_names,
+                weights=weights,
+                best_cfg=best_cfg,
+                out_dir="exported_best_model",
+            )
 
     print("\n" + "=" * 70)
     print("✅ Training selesai.")
